@@ -1,3 +1,4 @@
+import { APIResponseDto } from '@/common/dto/response.dto';
 import {
   type ArgumentsHost,
   Catch,
@@ -9,12 +10,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { SentryExceptionCaptured } from '@sentry/nestjs';
 import { Response } from 'express';
-import { APIResponseDto } from '@/common/dto/response.dto';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
-  private readonly configService = new ConfigService;
+  private readonly configService = new ConfigService();
 
   @SentryExceptionCaptured()
   catch(exception: Error, host: ArgumentsHost) {
@@ -22,7 +22,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message = exception.message || 'Internal Server Error';
     let errorDetailData: unknown = {};
@@ -40,7 +42,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
-    const apiResponse = new APIResponseDto;
+    const apiResponse = new APIResponseDto();
 
     apiResponse.status = status;
 
@@ -49,6 +51,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     apiResponse.data = { reason: errorDetailData || undefined };
 
     response.status(status).send(apiResponse);
+
+    if (status == HttpStatus.NOT_FOUND) return;
 
     this.logger.error(exception);
 
