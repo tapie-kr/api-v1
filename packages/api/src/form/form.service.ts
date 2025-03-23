@@ -1,3 +1,4 @@
+import { LogSnag } from '@logsnag/node';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FormResponse } from '@tapie-kr/api-database';
 import { AssetService } from '@/asset/asset.service';
@@ -7,15 +8,20 @@ import { PrismaForeignKeyConstraintError, PrismaOperationFailedError, toTypedPri
 import { KSTDate } from '@/common/utils/date';
 import { decodeFileNameKorean } from '@/common/utils/string';
 import { EmailService } from '@/email/email.service';
+import { EventService } from '@/event/event.services';
 import { CreateFormDto, FormPreviewDto, UpdateFormDto } from '@/form/dto/form.dto';
 import { CreateFormResponseDto, UpdateFormResponseDto } from '@/form/dto/response.dto';
 import { FormRepository } from '@/form/repository/form.repository';
 
 @Injectable()
 export class FormService {
+  private readonly eventLogger: LogSnag;
+
   constructor(private readonly formRepository: FormRepository,
     private readonly assetService: AssetService,
-    private readonly emailService: EmailService) {
+    private readonly emailService: EmailService,
+    private readonly eventService: EventService) {
+    this.eventLogger = this.eventService.getLogger();
   }
   async create(createFormDto: CreateFormDto) {
     return this.formRepository.create(createFormDto);
@@ -121,6 +127,11 @@ export class FormService {
         reasonToChoose:     data.reasonToChoose || '',
       } satisfies CreateFormResponseDto;
 
+      await this.eventLogger.identify({
+        user_id:    user.email,
+        properties: { name: user.name },
+      });
+
       return this.createResponse(formId, user, createResponseDto);
     }
 
@@ -129,6 +140,11 @@ export class FormService {
     if (isSubmitted) {
       throw new BadRequestException('이미 제출한 응답은 수정할 수 없습니다');
     }
+
+    await this.eventLogger.identify({
+      user_id:    user.email,
+      properties: { name: user.name },
+    });
 
     return this.formRepository.updateResponse(formId, user, data);
   }
@@ -152,6 +168,18 @@ export class FormService {
       filename,
       FileType.FORM_PORTFOLIO,
       originalFileName);
+
+    await this.eventLogger.track({
+      channel:     'form',
+      event:       '포트폴리오 파일 업로드',
+      description: `${originalFileName} 파일 업로드됨.`,
+      user_id:     user.email,
+      icon:        '📁',
+      notify:      true,
+      tags:        {
+        filename: originalFileName, path: asset.path, size: file.size,
+      },
+    });
 
     await this.formRepository.attachFileToResponse(formId, user, asset.uuid);
   }
@@ -184,6 +212,14 @@ export class FormService {
     if (!portfolio) {
       throw new NotFoundException('포트폴리오 파일을 찾을 수 없습니다');
     }
+
+    await this.eventLogger.track({
+      channel: 'form',
+      event:   '포트폴리오 파일 삭제',
+      user_id: user.email,
+      icon:    '📁',
+      notify:  true,
+    });
 
     return this.formRepository.removeFileFromResponse(formId, user);
   }
@@ -268,6 +304,19 @@ export class FormService {
     }
 
     const returnResponse = await this.formRepository.submitResponse(formId, user);
+    const form = await this.formRepository.findOne(formId);
+
+    await this.eventLogger.track({
+      channel:     'form',
+      event:       '폼 응답 제출완료',
+      description: '폼 응답이 제출되었습니다',
+      user_id:     user.email,
+      icon:        '📁',
+      notify:      true,
+      tags:        {
+        unit: form.unit, name: form.name,
+      },
+    });
 
     await this.sendEmailSubmitted(user, response, formId);
 

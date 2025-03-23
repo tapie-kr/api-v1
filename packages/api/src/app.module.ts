@@ -6,6 +6,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
 import { AssetModule } from '@/asset/asset.module';
 import { AuthModule } from '@/auth/auth.module';
 import { EmailModule } from '@/email/email.module';
+import { EventModule } from '@/event/event.module';
 import { FormModule } from '@/form/form.module';
 import { MembersModule } from '@/members/members.module';
 import { PortfolioModule } from '@/portfolio/portfolio.module';
@@ -17,6 +18,7 @@ import { ProjectModule } from '@/projects/projects.module';
     envFilePath: ['.env', '.env.development'],
   }),
   SentryModule.forRoot(),
+  EventModule,
   ThrottlerModule.forRoot({ throttlers: [
     {
       ttl:   1000,
