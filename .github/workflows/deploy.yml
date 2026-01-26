@@ -127,7 +127,7 @@ jobs:
             docker run -d \
               --name "\$CONTAINER_NAME" \
               --restart unless-stopped \
-              -p 8877:8877 \
+              -p 3000:3000 \
               --env-file "\$ENV_FILE_PATH" \
               "\$IMAGE_NAME"
             

@@ -1,16 +1,16 @@
-import { AppModule } from '@/app.module';
-import { APIResponseDto } from '@/common/dto/response.dto';
-import { GlobalExceptionFilter } from '@/common/filters/global-exception.filter';
-import { PrismaExceptionFilter } from '@/common/filters/prisma-exception.filter';
-import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
-import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
-import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
+import { AppModule } from '@/app.module'
+import { APIResponseDto } from '@/common/dto/response.dto'
+import { GlobalExceptionFilter } from '@/common/filters/global-exception.filter'
+import { PrismaExceptionFilter } from '@/common/filters/prisma-exception.filter'
+import { TransformInterceptor } from '@/common/interceptors/transform.interceptor'
+import { Logger, ValidationPipe, VersioningType } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { NestFactory } from '@nestjs/core'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import cookieParser from 'cookie-parser'
+import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes'
 
-import './instrument';
+import './instrument'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

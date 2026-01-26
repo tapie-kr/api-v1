@@ -4,7 +4,7 @@ set -e
 # Configuration
 IMAGE_NAME="${IMAGE_NAME:-ghcr.io/tapie-kr/api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-tapie-api}"
-PORT="${PORT:-8877}"
+PORT="${PORT:-3000}"
 
 echo "Starting deployment..."
 echo "Image: $IMAGE_NAME"
@@ -33,7 +33,7 @@ if [ -n "$ENV_FILE_PATH" ] && [ -f "$ENV_FILE_PATH" ]; then
   docker run -d \
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
-    -p "$PORT:8877" \
+    -p "$PORT:3000" \
     --env-file "$ENV_FILE_PATH" \
     "$IMAGE_NAME"
 else
@@ -41,7 +41,7 @@ else
   docker run -d \
     --name "$CONTAINER_NAME" \
     --restart unless-stopped \
-    -p "$PORT:8877" \
+    -p "$PORT:3000" \
     "$IMAGE_NAME"
 fi
 
