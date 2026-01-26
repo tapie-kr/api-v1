@@ -21,7 +21,14 @@ export class AssetService {
     private readonly configService: ConfigService,
     private readonly assetRepository: AssetRepository) {
     // Cloudflare R2 지원: pathStyle 옵션 추가 (R2는 path-style URL 사용)
-    const endPoint = this.configService.get('MINIO_URL');
+    let endPoint = this.configService.get('MINIO_URL');
+    
+    // MinIO 클라이언트는 프로토콜을 포함하지 않은 호스트명만 필요
+    // https://example.com -> example.com
+    if (endPoint) {
+      endPoint = endPoint.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    }
+    
     const isR2 = endPoint?.includes('r2.cloudflarestorage.com') || endPoint?.includes('r2.dev');
     
     this.minioClient = new MinioClient({
