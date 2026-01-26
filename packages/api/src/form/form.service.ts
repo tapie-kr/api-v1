@@ -243,7 +243,7 @@ export class FormService {
       const form = await this.formRepository.findOne(formId);
 
       await this.emailService.sendEmailHTMLWithArguments(
-        'TAPIE <apply@email.tapie.kr>',
+        'TAPIE <apply@mail.tapie.kr>',
         user.email,
         'admin@tapie.kr',
         '테이피 지원서 제출이 완료되었습니다',
