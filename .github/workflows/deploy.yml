@@ -1,0 +1,138 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build and Push to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (for tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Output image digest
+        run: |
+          echo "Image pushed with digest: ${{ steps.build.outputs.digest }}"
+
+  deploy:
+    name: Deploy to Server
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H -p ${{ secrets.SSH_PORT || 22 }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy deploy script to server
+        run: |
+          scp -P ${{ secrets.SSH_PORT || 22 }} -o StrictHostKeyChecking=no \
+            scripts/deploy.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/deploy.sh || true
+
+      - name: Deploy to server
+        env:
+          IMAGE_NAME: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT || 22 }}
+          CONTAINER_NAME: ${{ secrets.CONTAINER_NAME || 'tapie-api' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          ENV_FILE_PATH: ${{ secrets.ENV_FILE_PATH || '/opt/tapie/.env' }}
+        run: |
+          ssh -p $SSH_PORT -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST bash << EOF
+            set -e
+            
+            export IMAGE_NAME="${IMAGE_NAME}:latest"
+            export CONTAINER_NAME="${CONTAINER_NAME}"
+            export GITHUB_TOKEN="${GITHUB_TOKEN}"
+            export GITHUB_ACTOR="${GITHUB_ACTOR}"
+            export ENV_FILE_PATH="${ENV_FILE_PATH}"
+            
+            echo "Logging in to GHCR..."
+            echo "\$GITHUB_TOKEN" | docker login ghcr.io -u "\$GITHUB_ACTOR" --password-stdin
+            
+            echo "Pulling latest image..."
+            docker pull "\$IMAGE_NAME"
+            
+            echo "Stopping and removing old container..."
+            docker stop "\$CONTAINER_NAME" || true
+            docker rm "\$CONTAINER_NAME" || true
+            
+            if [ ! -f "\$ENV_FILE_PATH" ]; then
+              echo "⚠️  Warning: .env file not found at \$ENV_FILE_PATH"
+              echo "Please create the .env file on the server before deployment."
+              exit 1
+            fi
+            
+            echo "Starting new container with .env file..."
+            docker run -d \
+              --name "\$CONTAINER_NAME" \
+              --restart unless-stopped \
+              -p 8877:8877 \
+              --env-file "\$ENV_FILE_PATH" \
+              "\$IMAGE_NAME"
+            
+            echo "Cleaning up old images..."
+            docker image prune -f
+            
+            echo "Deployment completed successfully!"
+          EOF

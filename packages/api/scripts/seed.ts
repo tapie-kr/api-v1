@@ -1,11 +1,11 @@
 /* eslint-disable */
 /// <reference types="dotenv" />
 
-import { createLogger, format, transports } from 'winston';
-import { MemberRole, MemberUnit, PrismaClient } from '../../database';
-import { PrismaClientKnownRequestError } from '../../database/client/runtime/library';
+import { createLogger, format, transports } from 'winston'
+import { MemberRole, MemberUnit, PrismaClient } from '../../database'
+import { PrismaClientKnownRequestError } from '../../database/client/runtime/library'
 
-import 'dotenv/config';
+import 'dotenv/config'
 
 async function main() {
   const prisma = new PrismaClient;
@@ -29,7 +29,7 @@ async function main() {
 
     await prisma.member.create({ data: {
         googleEmail: TEMPORARY_GOOGLE_EMAIL,
-        name:        '조성주',
+        name:        'TAPIE',
         studentID:   Math.floor(Math.random() * 10000) + 10000,
         role:        MemberRole.MANAGER,
         unit:        MemberUnit.DEVELOPER,

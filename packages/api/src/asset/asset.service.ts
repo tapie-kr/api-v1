@@ -1,15 +1,15 @@
+import { AssetRepository } from '@/asset/asset.repository'
+import { FileType } from '@/asset/types/fileType'
 import {
   Cache,
   CACHE_MANAGER,
   CacheInterceptor,
   CacheTTL,
-} from '@nestjs/cache-manager';
-import { Inject, Injectable, UseInterceptors } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Client as MinioClient } from 'minio';
-import { v4 as uuidv4 } from 'uuid';
-import { AssetRepository } from '@/asset/asset.repository';
-import { FileType } from '@/asset/types/fileType';
+} from '@nestjs/cache-manager'
+import { Inject, Injectable, UseInterceptors } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Client as MinioClient } from 'minio'
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 @UseInterceptors(CacheInterceptor)
@@ -20,11 +20,17 @@ export class AssetService {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly configService: ConfigService,
     private readonly assetRepository: AssetRepository) {
+    // Cloudflare R2 지원: pathStyle 옵션 추가 (R2는 path-style URL 사용)
+    const endPoint = this.configService.get('MINIO_URL');
+    const isR2 = endPoint?.includes('r2.cloudflarestorage.com') || endPoint?.includes('r2.dev');
+    
     this.minioClient = new MinioClient({
-      endPoint:  this.configService.get('MINIO_URL'),
+      endPoint:  endPoint,
       useSSL:    true,
       accessKey: this.configService.get('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get('MINIO_SECRET_KEY'),
+      // R2의 경우 pathStyle을 true로 설정 (선택사항, R2는 둘 다 지원)
+      ...(isR2 && { pathStyle: true }),
     });
   }
   generateFilename(originalName: string): string {
