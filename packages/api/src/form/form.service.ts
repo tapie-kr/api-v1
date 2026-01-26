@@ -1,17 +1,17 @@
-import { LogSnag } from '@logsnag/node';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FormResponse } from '@tapie-kr/api-database';
-import { AssetService } from '@/asset/asset.service';
-import { FileType } from '@/asset/types/fileType';
-import { MemberGuestPayload } from '@/auth/dto/member-payload.dto';
-import { PrismaForeignKeyConstraintError, PrismaOperationFailedError, toTypedPrismaError } from '@/common/prisma/prisma.exception';
-import { KSTDate } from '@/common/utils/date';
-import { decodeFileNameKorean } from '@/common/utils/string';
-import { EmailService } from '@/email/email.service';
-import { EventService } from '@/event/event.services';
-import { CreateFormDto, FormPreviewDto, UpdateFormDto } from '@/form/dto/form.dto';
-import { CreateFormResponseDto, UpdateFormResponseDto } from '@/form/dto/response.dto';
-import { FormRepository } from '@/form/repository/form.repository';
+import { AssetService } from '@/asset/asset.service'
+import { FileType } from '@/asset/types/fileType'
+import { MemberGuestPayload } from '@/auth/dto/member-payload.dto'
+import { PrismaForeignKeyConstraintError, PrismaOperationFailedError, toTypedPrismaError } from '@/common/prisma/prisma.exception'
+import { KSTDate } from '@/common/utils/date'
+import { decodeFileNameKorean } from '@/common/utils/string'
+import { EmailService } from '@/email/email.service'
+import { EventService } from '@/event/event.services'
+import { CreateFormDto, FormPreviewDto, UpdateFormDto } from '@/form/dto/form.dto'
+import { CreateFormResponseDto, UpdateFormResponseDto } from '@/form/dto/response.dto'
+import { FormRepository } from '@/form/repository/form.repository'
+import { LogSnag } from '@logsnag/node'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { FormResponse } from '@tapie-kr/api-database'
 
 @Injectable()
 export class FormService {
@@ -260,8 +260,8 @@ export class FormService {
           expected_activities: response.expectedActivities,
           reason_to_select:    response.reasonToChoose,
           instagram_handle:    '@sunrin_tapie',
-          contact_phone:       '010-2310-4403',
-          year:                '2025',
+          contact_phone:       '010-9316-1668',
+          year:                '2026',
         },
       );
     } catch (error) {
