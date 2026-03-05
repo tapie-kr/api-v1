@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '@/auth/decorators/permission.decorator';
+import { ADMIN_EMAIL } from '@/common/constants/email';
 import { PermissionCore } from '@/common/utils/permissions';
 
 @Injectable()
@@ -24,7 +25,15 @@ export class PermissionGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || typeof user.permissions !== 'number') {
+    if (!user) {
+      throw new UnauthorizedException('Unauthorized');
+    }
+
+    if (user.googleEmail === ADMIN_EMAIL) {
+      return true;
+    }
+
+    if (typeof user.permissions !== 'number') {
       throw new UnauthorizedException('Unauthorized');
     }
 

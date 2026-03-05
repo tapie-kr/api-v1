@@ -5,7 +5,9 @@ import {
   IsEnum,
   IsNumber,
   IsString,
+  Matches,
 } from 'class-validator';
+import { SUNRIN_EMAIL_REGEX } from '@/common/constants/email';
 import { MemberHistoryDto } from '@/members/dto/member-history.dto';
 import { MemberLinkDto } from '@/members/dto/member-link.dto';
 import { MemberSkillDto } from '@/members/dto/member-skill.dto';
@@ -37,8 +39,11 @@ export class MemberDto {
   username: string;
 
   @IsString()
+  @Matches(SUNRIN_EMAIL_REGEX, {
+    message: '선린 계정(@sunrint.hs.kr) 이메일만 사용할 수 있습니다.',
+  })
   @ApiProperty({
-    description: '회원 이메일', example: 'noreply@tapie.kr',
+    description: '회원 이메일 (선린 계정만 허용)', example: 'user@sunrint.hs.kr',
   })
   googleEmail: string;
 

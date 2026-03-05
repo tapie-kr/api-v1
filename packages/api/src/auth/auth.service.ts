@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { GoogleAuthDto } from '@/auth/dto/google-auth.dto';
 import { MemberPayloadDto, TokenType } from '@/auth/dto/member-payload.dto';
 import { JWT_CONSTANTS } from '@/common/constants/auth/jwt.constants';
+import { isAllowedEmailDomain } from '@/common/constants/email';
 import { omit } from '@/common/utils/object';
 import { GetMemberMethod } from '@/members/enums/member.enum';
 import { MembersService } from '@/members/service/members.service';
@@ -20,6 +21,10 @@ export class AuthService {
   async googleLogin(googleUser: GoogleAuthDto, service: string) {
     if (!googleUser) {
       throw new UnauthorizedException('잘못된 구글 인증 정보입니다.');
+    }
+
+    if (!isAllowedEmailDomain(googleUser.email)) {
+      throw new UnauthorizedException('선린 계정(@sunrint.hs.kr)으로만 로그인할 수 있습니다.');
     }
 
     const existsMember = await this.membersService.getMember(GetMemberMethod.GOOGLE_EMAIL,
