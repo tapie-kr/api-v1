@@ -125,6 +125,7 @@ export class FormService {
         motivation:         data.motivation || '',
         expectedActivities: data.expectedActivities || '',
         reasonToChoose:     data.reasonToChoose || '',
+        creatorQuestion:    data.creatorQuestion || '',
       } satisfies CreateFormResponseDto;
 
       await this.eventLogger.identify({
@@ -259,6 +260,7 @@ export class FormService {
           self_introduction:   response.introduction,
           expected_activities: response.expectedActivities,
           reason_to_select:    response.reasonToChoose,
+          creator_question:    response.creatorQuestion,
           instagram_handle:    '@sunrin_tapie',
           contact_phone:       '010-9316-1668',
           year:                '2026',
@@ -292,6 +294,7 @@ export class FormService {
       motivation,
       expectedActivities,
       reasonToChoose,
+      creatorQuestion,
     } = response;
 
     if ([
@@ -299,6 +302,7 @@ export class FormService {
       motivation,
       expectedActivities,
       reasonToChoose,
+      creatorQuestion,
     ].some(value => value === '')) {
       throw new BadRequestException('응답 데이터가 비어있으면 제출할 수 없습니다.');
     }

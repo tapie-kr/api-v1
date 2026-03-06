@@ -23,6 +23,7 @@ model FormResponse {
   motivation         String
   expectedActivities String
   reasonToChoose     String
+  creatorQuestion    String
 
   form        ApplyForm @relation(fields: [formId], references: [id])
   member      Member?   @relation(fields: [memberUUID], references: [uuid], onDelete: Restrict)

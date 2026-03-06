@@ -62,6 +62,12 @@ export class FormResponseDto {
   @ApiProperty({ description: '선택 이유' })
   reasonToChoose: string;
 
+  @IsString()
+  @ApiProperty({
+    description: '지금까지 사용해 본 서비스 중 한 가지를 떠올리고, 해당 서비스를 만든 개발자, 기획자, 디자이너 등에게 직접 질문할 수 있다면 누구에게 무엇을 묻고 싶은지',
+  })
+  creatorQuestion: string;
+
   @IsDate()
   @ApiProperty({ description: '생성일' })
   createdAt: Date;

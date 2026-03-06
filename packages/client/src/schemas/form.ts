@@ -62,6 +62,7 @@ export const formApplicationSchema = z.object({
   motivation: z.string(),
   expectedActivities: z.string(),
   reasonToChoose: z.string(),
+  creatorQuestion: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
   submittedAt: z.string().optional(),
@@ -94,6 +95,7 @@ export const createFormApplicationSchema = formApplicationSchema.pick({
   motivation: true,
   expectedActivities: true,
   reasonToChoose: true,
+  creatorQuestion: true,
 });
 export type CreateFormApplicationRequest = z.infer<
   typeof createFormApplicationSchema
