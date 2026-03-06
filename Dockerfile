@@ -24,6 +24,6 @@ RUN pnpm run generate
 WORKDIR /app/packages/api
 RUN pnpm run build
 
-RUN chmod +x /app/scripts/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
 
-ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
